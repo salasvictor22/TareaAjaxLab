@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Número total de confirmados por región</title>
+	<link rel="stylesheet" type="text/css" href="estilo1-2.css">
+</head>
+<body>
+    <h1>Número total de confirmados por región en el Perú</h1>
+    <button id="loadRegions">Cargar Regiones</button>
+    <ul id="regionList"></ul>
+    <div id="totalConfirmed"></div>
+
+    <script>
+        document.getElementById('loadRegions').addEventListener('click', loadRegions);
+
+        function loadRegions() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'data.json', true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    const data = JSON.parse(this.responseText);
+                    const regions = data.map(regionData => regionData.region);
+                    const confirmedData = data.map(regionData => regionData.confirmed);
+                    let totalConfirmed = {};
+
+                    for (let i = 0; i < regions.length; i++) {
+                        let regionConfirmed = confirmedData[i].reduce((total, current) => total + parseInt(current.value), 0);
+                        totalConfirmed[regions[i]] = regionConfirmed;
+                    }
+
+                    let output = '';
+                    for (const region in totalConfirmed) {
+                        if (totalConfirmed.hasOwnProperty(region)) {
+                            output += `<li>${region}: ${totalConfirmed[region]}</li>`;
+                        }
+                    }
+                    document.getElementById('regionList').innerHTML = output;
+
+                    // Mostrar el total de confirmados
+                    let totalConfirmedSum = Object.values(totalConfirmed).reduce((total, current) => total + current, 0);
+                    document.getElementById('totalConfirmed').innerHTML = `<p>Total de confirmados: ${totalConfirmedSum}</p>`;
+                } else {
+                    console.error('Error loading data');
+                }
+            };
+            xhr.onerror = function() {
+                console.error('Request error...');
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
