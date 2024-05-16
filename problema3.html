@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 10 Regiones con Mayor Número de Confirmados</title>
+    <link rel="stylesheet" type="text/css" href="estilo3.css">
+</head>
+<body>
+    <h1>Top 10 Regiones con Mayor Número de Confirmados en el Perú</h1>
+    <button id="loadRegions">Cargar Regiones</button>
+    <ul id="regionList"></ul>
+
+    <script>
+        document.getElementById('loadRegions').addEventListener('click', loadRegions);
+
+        function loadRegions() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'data.json', true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    const data = JSON.parse(this.responseText);
+                    const totalConfirmedByRegion = data.map(regionData => {
+                        return {
+                            region: regionData.region,
+                            totalConfirmed: regionData.confirmed.reduce((total, current) => total + parseInt(current.value), 0)
+                        };
+                    });
+
+                    totalConfirmedByRegion.sort((a, b) => b.totalConfirmed - a.totalConfirmed);
+
+                    const top10Regions = totalConfirmedByRegion.slice(0, 10);
+
+                    let output = '';
+                    top10Regions.forEach(function(region) {
+                        output += `<li>${region.region}: ${region.totalConfirmed}</li>`;
+                    });
+
+                    document.getElementById('regionList').innerHTML = output;
+                } else {
+                    console.error('Error loading data');
+                }
+            };
+            xhr.onerror = function() {
+                console.error('Request error...');
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
