@@ -1,0 +1,1 @@
+Este es el contenido cargado desde el archivo ajax_info.txt.
