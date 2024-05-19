@@ -41,9 +41,7 @@
     <script type="text/javascript">
         google.charts.load('current', {packages: ['corechart', 'line']});
         google.charts.setOnLoadCallback(loadData);
-
         let globalData = [];
-
         function loadData() {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', 'data.json', true);
@@ -59,22 +57,18 @@
             };
             xhr.send();
         }
-
         function mostrarGrafico() {
             const region = document.getElementById("region").value;
             const data = new google.visualization.DataTable();
             data.addColumn('string', 'Fecha');
             data.addColumn('number', 'Crecimiento de Confirmados');
-
             const datosRegion = globalData.find(dato => dato.region === region);
-            const confirmados = datosRegion.confirmed.map(dato => parseInt(dato.value));
-            
+            const confirmados = datosRegion.confirmed.map(dato => parseInt(dato.value));  
             for (let i = 1; i < confirmados.length; i++) {
                 const fecha = datosRegion.confirmed[i].date;
                 const crecimiento = confirmados[i] - confirmados[i - 1];
                 data.addRow([fecha, crecimiento]);
             }
-
             const options = {
                 title: `Crecimiento de Confirmados por Día en ${region}`,
                 width: 900,
@@ -89,7 +83,6 @@
                     0: { color: 'blue' }
                 }
             };
-
             const chart = new google.visualization.LineChart(document.getElementById('graficoCrecimiento'));
             chart.draw(data, options);
         }
