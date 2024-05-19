@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparación de Confirmados por Día (Excepto Lima y Callao)</title>
+    <title>Crecimiento de Confirmados por Día (Excepto Lima y Callao)</title>
     <link rel="stylesheet" href="estilo8.css">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
-    <h1>Comparación de Confirmados por Día (Excepto Lima y Callao)</h1>
-    <select id="region1">
+    <h1>Crecimiento de Confirmados por Día (Excepto Lima y Callao)</h1>
+    <select id="region">
         <option value="Amazonas">Amazonas</option>
         <option value="Ancash">Ancash</option>
         <option value="Apurimac">Apurimac</option>
@@ -35,39 +35,10 @@
         <option value="Puno">Puno</option>
         <option value="Madre de Dios">Madre de Dios</option>
     </select>
-    <select id="region2">
-        <option value="Amazonas">Amazonas</option>
-        <option value="Ancash">Ancash</option>
-        <option value="Apurimac">Apurimac</option>
-        <option value="Tumbes">Tumbes</option>
-        <option value="Piura">Piura</option>
-        <option value="Lambayeque">Lambayeque</option>
-        <option value="La Libertad">La Libertad</option>
-        <option value="Cajamarca">Cajamarca</option>
-        <option value="Ica">Ica</option>
-        <option value="Arequipa">Arequipa</option>
-        <option value="Moquegua">Moquegua</option>
-        <option value="Tacna">Tacna</option>
-        <option value="Loreto">Loreto</option>
-        <option value="San Martin">San Martin</option>
-        <option value="Huanuco">Huanuco</option>
-        <option value="Pasco">Pasco</option>
-        <option value="Ucayali">Ucayali</option>
-        <option value="Huancayo">Huancayo</option>
-        <option value="Huancavelica">Huancavelica</option>
-        <option value="Ayacucho">Ayacucho</option>
-        <option value="Avancay">Avancay</option>
-        <option value="Cusco">Cusco</option>
-        <option value="Puno">Puno</option>
-        <option value="Madre de Dios">Madre de Dios</option>
-    </select>
-    <button onclick="obtenerDatos()">Comparar</button>
-    <button onclick="regresar()">Regresar</button>
-    <div id="grafico">
-        <div id="graficoComparativo" style="width: 900px; height: 500px;"></div>
-    </div>
-	
-	<script type="text/javascript">
+    <button onclick="mostrarGrafico()">Mostrar Gráfico</button>
+    <div id="graficoCrecimiento" style="width: 900px; height: 500px;"></div>
+
+    <script type="text/javascript">
         google.charts.load('current', {packages: ['corechart', 'line']});
         google.charts.setOnLoadCallback(loadData);
 
@@ -79,7 +50,6 @@
             xhr.onload = function() {
                 if (this.status === 200) {
                     globalData = JSON.parse(this.responseText);
-                    cargarRegiones();
                 } else {
                     console.error('Error loading data');
                 }
@@ -90,67 +60,38 @@
             xhr.send();
         }
 
-        function cargarRegiones() {
-            const select1 = document.getElementById('region1');
-            const select2 = document.getElementById('region2');
-            globalData.forEach(region => {
-                if (region.region !== 'Lima' && region.region !== 'Callao') {
-                    const option = document.createElement('option');
-                    option.textContent = region.region;
-                    select1.appendChild(option.cloneNode(true));
-                    select2.appendChild(option);
-                }
-            });
-        }
-
-        function obtenerDatos() {
-            const region1 = document.getElementById("region1").value;
-            const region2 = document.getElementById("region2").value;
-            mostrarGrafico(region1, region2);
-        }
-
-        function mostrarGrafico(region1, region2) {
+        function mostrarGrafico() {
+            const region = document.getElementById("region").value;
             const data = new google.visualization.DataTable();
             data.addColumn('string', 'Fecha');
-            data.addColumn('number', region1);
-            data.addColumn('number', region2);
+            data.addColumn('number', 'Crecimiento de Confirmados');
 
-            globalData.forEach(region => {
-                if (region.region !== 'Lima' && region.region !== 'Callao') {
-                    region.confirmed.forEach(dato => {
-                        const fecha = dato.date;
-                        const confirmados = parseInt(dato.value);
-                        if (region.region === region1) {
-                            data.addRow([fecha, confirmados, 0]);
-                        } else if (region.region === region2) {
-                            data.addRow([fecha, 0, confirmados]);
-                        }
-                    });
-                }
-            });
+            const datosRegion = globalData.find(dato => dato.region === region);
+            const confirmados = datosRegion.confirmed.map(dato => parseInt(dato.value));
+            
+            for (let i = 1; i < confirmados.length; i++) {
+                const fecha = datosRegion.confirmed[i].date;
+                const crecimiento = confirmados[i] - confirmados[i - 1];
+                data.addRow([fecha, crecimiento]);
+            }
 
             const options = {
-                title: 'Comparación de Confirmados por Día (Excepto Lima y Callao)',
+                title: `Crecimiento de Confirmados por Día en ${region}`,
                 width: 900,
                 height: 500,
                 hAxis: {
                     title: 'Fecha'
                 },
                 vAxis: {
-                    title: 'Número de Confirmados'
+                    title: 'Crecimiento de Confirmados'
                 },
                 series: {
-                    0: { color: 'blue' },
-                    1: { color: 'red' }
+                    0: { color: 'blue' }
                 }
             };
 
-            const chart = new google.visualization.LineChart(document.getElementById('graficoComparativo'));
+            const chart = new google.visualization.LineChart(document.getElementById('graficoCrecimiento'));
             chart.draw(data, options);
-        }
-
-        function limpiarGrafico() {
-            document.getElementById('graficoComparativo').innerHTML = '';
         }
     </script>
 </body>
